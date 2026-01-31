@@ -1,0 +1,4 @@
+[
+  "event LiquidityAdded(address indexed provider, bytes32 indexed poolId, int256 liquidityDelta, uint256 timestamp, uint256 chainId)",
+  "event LiquidityRemoved(address indexed provider, bytes32 indexed poolId, int256 liquidityDelta, uint256 timestamp, uint256 chainId)"
+]

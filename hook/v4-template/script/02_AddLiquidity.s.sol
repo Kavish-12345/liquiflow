@@ -3,8 +3,13 @@ pragma solidity ^0.8.26;
 
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {CurrencyLibrary, Currency} from "@uniswap/v4-core/src/types/Currency.sol";
-import {LiquidityAmounts} from "@uniswap/v4-core/test/utils/LiquidityAmounts.sol";
+import {
+    CurrencyLibrary,
+    Currency
+} from "@uniswap/v4-core/src/types/Currency.sol";
+import {
+    LiquidityAmounts
+} from "@uniswap/v4-core/test/utils/LiquidityAmounts.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 
@@ -23,8 +28,8 @@ contract AddLiquidityScript is BaseScript, LiquidityHelpers {
     int24 tickSpacing = 60;
 
     // --- liquidity position configuration --- //
-    uint256 public token0Amount = 1e18;
-    uint256 public token1Amount = 1e18;
+    uint256 public token0Amount = 1e5; // 0.10 USDC
+    uint256 public token1Amount = 1e15; // 0.001 WETH
 
     /////////////////////////////////////
 
@@ -41,12 +46,18 @@ contract AddLiquidityScript is BaseScript, LiquidityHelpers {
         });
         bytes memory hookData = new bytes(0);
 
-        (uint160 sqrtPriceX96,,,) = poolManager.getSlot0(poolKey.toId());
+        (uint160 sqrtPriceX96, , , ) = poolManager.getSlot0(poolKey.toId());
 
         int24 currentTick = TickMath.getTickAtSqrtPrice(sqrtPriceX96);
 
-        tickLower = truncateTickSpacing((currentTick - 1000 * tickSpacing), tickSpacing);
-        tickUpper = truncateTickSpacing((currentTick + 1000 * tickSpacing), tickSpacing);
+        tickLower = truncateTickSpacing(
+            (currentTick - 1000 * tickSpacing),
+            tickSpacing
+        );
+        tickUpper = truncateTickSpacing(
+            (currentTick + 1000 * tickSpacing),
+            tickSpacing
+        );
 
         // Converts token amounts to liquidity units
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
@@ -61,16 +72,28 @@ contract AddLiquidityScript is BaseScript, LiquidityHelpers {
         uint256 amount0Max = token0Amount + 1 wei;
         uint256 amount1Max = token1Amount + 1 wei;
 
-        (bytes memory actions, bytes[] memory mintParams) = _mintLiquidityParams(
-            poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, deployerAddress, hookData
-        );
+        (
+            bytes memory actions,
+            bytes[] memory mintParams
+        ) = _mintLiquidityParams(
+                poolKey,
+                tickLower,
+                tickUpper,
+                liquidity,
+                amount0Max,
+                amount1Max,
+                deployerAddress,
+                hookData
+            );
 
         // multicall parameters
         bytes[] memory params = new bytes[](1);
 
         // Mint Liquidity
         params[0] = abi.encodeWithSelector(
-            positionManager.modifyLiquidities.selector, abi.encode(actions, mintParams), block.timestamp + 60
+            positionManager.modifyLiquidities.selector,
+            abi.encode(actions, mintParams),
+            block.timestamp + 60
         );
 
         // If the pool is an ETH pair, native tokens are to be transferred

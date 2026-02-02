@@ -30,7 +30,7 @@ contract BaseScript is Script, Deployers {
         IERC20(0x036CbD53842c5426634e7929541eC2318f3dCF7e); // USDC Base
     IERC20 internal constant token1 =
         IERC20(0x4200000000000000000000000000000000000006); // WETH Base
-    IHooks constant hookContract = IHooks(0xCE26C2951413F1102187F8665F715870DaFA8500); // Reset to 0
+    IHooks constant hookContract = IHooks(0x4d85A01C422Db1362FEcF9DF112dE42ea5a14500); // Reset to 0
 
     Currency immutable currency0;
     Currency immutable currency1;

@@ -63,40 +63,40 @@ contract LiquidityTracker is BaseHook {
     }
 
     function _afterAddLiquidity(
-        address sender,
-        PoolKey calldata key,
-        ModifyLiquidityParams calldata params,
-        BalanceDelta delta,
-        BalanceDelta,
-        bytes calldata
-    ) internal override returns (bytes4, BalanceDelta) {
-        emit LiquidityAdded(
-            sender,
-            key.toId(),
-            params.liquidityDelta,
-            block.timestamp,
-            block.chainid
-        );
+    address sender,
+    PoolKey calldata key,
+    ModifyLiquidityParams calldata params,
+    BalanceDelta delta,
+    BalanceDelta,
+    bytes calldata
+) internal override returns (bytes4, BalanceDelta) {
+    emit LiquidityAdded(
+        tx.origin,  
+        key.toId(),
+        params.liquidityDelta,
+        block.timestamp,
+        block.chainid
+    );
 
-        return (BaseHook.afterAddLiquidity.selector, delta);
-    }
+    return (BaseHook.afterAddLiquidity.selector, delta);
+}
 
-    function _afterRemoveLiquidity(
-        address sender,
-        PoolKey calldata key,
-        ModifyLiquidityParams calldata params,
-        BalanceDelta delta,
-        BalanceDelta,
-        bytes calldata
-    ) internal override returns (bytes4, BalanceDelta) {
-        emit LiquidityRemoved(
-            sender,
-            key.toId(),
-            params.liquidityDelta,
-            block.timestamp,
-            block.chainid
-        );
+function _afterRemoveLiquidity(
+    address sender,
+    PoolKey calldata key,
+    ModifyLiquidityParams calldata params,
+    BalanceDelta delta,
+    BalanceDelta,
+    bytes calldata
+) internal override returns (bytes4, BalanceDelta) {
+    emit LiquidityRemoved(
+        tx.origin,  
+        key.toId(),
+        params.liquidityDelta,
+        block.timestamp,
+        block.chainid
+    );
 
-        return (BaseHook.afterRemoveLiquidity.selector, delta);
-    }
+    return (BaseHook.afterRemoveLiquidity.selector, delta);
+}
 }

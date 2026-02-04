@@ -32,6 +32,17 @@
       "chainId": "11155111",
       "txHash": "0xd461b58241cabf889a36cb7111fc8467cbdca89c6354466788f5f0831d91f3af",
       "blockNumber": 10177899
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x6fDf15C2A6A952ba2688b927C77F3e4cCf3ebAA9",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "105240",
+      "timestamp": "1770123456",
+      "chainId": "11155111",
+      "txHash": "0xe78641bbb1c9ff85d50d01b5ff8c92f5d484a132d1a47c5d8acf60ff43edc9f8",
+      "blockNumber": 10182785
     }
   ],
   "claimed": {}

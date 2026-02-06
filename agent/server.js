@@ -63,16 +63,21 @@ console.log('📡 ETH Hook:', CHAINS.ethereum.hook);
 console.log('📡 Base Hook:', CHAINS.base.hook, '\n');
 
 // ============ Storage ============
-let data = { events: [], claimed: {} };
+let data = { events: [], claimed: {}, claims: [] };
 
 function loadData() {
   try {
     if (fs.existsSync('./data.json')) {
       const content = fs.readFileSync('./data.json', 'utf8');
-      if (content.trim()) return JSON.parse(content);
+      if (content.trim()) {
+        const loaded = JSON.parse(content);
+        // Ensure claims array exists
+        if (!loaded.claims) loaded.claims = [];
+        return loaded;
+      }
     }
   } catch (e) {}
-  return { events: [], claimed: {} };
+  return { events: [], claimed: {}, claims: [] };
 }
 
 function saveData() {
@@ -98,19 +103,18 @@ async function calculateRewards() {
   for (const event of data.events) {
     const key = event.provider.toLowerCase();
     if (event.type === 'LiquidityAdded') {
-  const existing = positions.get(key) || {
-    liquidity: 0n,
-    lastUpdate: Number(event.timestamp), // FIRST time they added
-    chain: event.chain,
-    provider: event.provider
-  };
+      const existing = positions.get(key) || {
+        liquidity: 0n,
+        lastUpdate: Number(event.timestamp),
+        chain: event.chain,
+        provider: event.provider
+      };
 
-  positions.set(key, {
-    ...existing,
-    liquidity: BigInt(existing.liquidity) + BigInt(event.liquidityDelta),
-    // DON'T update lastUpdate - keep it as FIRST add time
-  });
-}
+      positions.set(key, {
+        ...existing,
+        liquidity: BigInt(existing.liquidity) + BigInt(event.liquidityDelta),
+      });
+    }
   }
   if (positions.size === 0) return [];
   const now = Math.floor(Date.now() / 1000);
@@ -128,7 +132,13 @@ async function calculateRewards() {
     const totalReward = (pos.liquidityTime * BigInt(treasuryBalance)) / totalLiquidityTime;
     const claimed = BigInt(data.claimed[pos.address] || '0');
     const pending = totalReward > claimed ? totalReward - claimed : 0n;
-    return { provider: pos.provider, chain: pos.chain, pending: pending.toString(), claimed: claimed.toString(), total: totalReward.toString() };
+    return { 
+      provider: pos.provider, 
+      chain: pos.chain, 
+      pending: pending.toString(), 
+      claimed: claimed.toString(), 
+      total: totalReward.toString() 
+    };
   });
 }
 
@@ -139,7 +149,17 @@ function handleEvent(chain, type) {
     console.log(`${emoji} [${chain.toUpperCase()}] ${type}`);
     console.log(`   ${provider.slice(0, 10)}... - ${liquidityDelta.toString()}`);
     console.log(`   Tx: ${event.log.transactionHash}\n`);
-    data.events.push({ type, chain, provider, poolId, liquidityDelta: liquidityDelta.toString(), timestamp: timestamp.toString(), chainId: chainId.toString(), txHash: event.log.transactionHash, blockNumber: event.log.blockNumber });
+    data.events.push({ 
+      type, 
+      chain, 
+      provider, 
+      poolId, 
+      liquidityDelta: liquidityDelta.toString(), 
+      timestamp: timestamp.toString(), 
+      chainId: chainId.toString(), 
+      txHash: event.log.transactionHash, 
+      blockNumber: event.log.blockNumber 
+    });
     saveData();
   };
 }
@@ -151,93 +171,319 @@ hooks.base.on('LiquidityAdded', handleEvent('base', 'LiquidityAdded'));
 hooks.base.on('LiquidityRemoved', handleEvent('base', 'LiquidityRemoved'));
 
 // ============ API ============
-app.get('/api/health', (req, res) => res.json({ status: 'running', treasury: treasury.address, chains: Object.keys(CHAINS), events: data.events.length }));
-app.get('/api/chains', (req, res) => res.json({ chains: Object.entries(CHAINS).map(([key, config]) => ({ id: key, chainId: config.chainId, name: config.name })) }));
+app.get('/api/health', (req, res) => res.json({ 
+  status: 'running', 
+  treasury: treasury.address, 
+  chains: Object.keys(CHAINS), 
+  events: data.events.length 
+}));
+
+app.get('/api/chains', (req, res) => res.json({ 
+  chains: Object.entries(CHAINS).map(([key, config]) => ({ 
+    id: key, 
+    chainId: config.chainId, 
+    name: config.name 
+  })) 
+}));
+
 app.get('/api/rewards/:address', async (req, res) => {
   try {
     const address = req.params.address.toLowerCase();
     const rewards = await calculateRewards();
     const userReward = rewards.find(r => r.provider.toLowerCase() === address);
-    if (!userReward) return res.json({ address, pending: '0', claimed: '0', pendingUSDC: '0.00', claimedUSDC: '0.00' });
-    res.json({ address: userReward.provider, pending: userReward.pending, claimed: userReward.claimed, pendingUSDC: (Number(userReward.pending) / 1e6).toFixed(2), claimedUSDC: (Number(userReward.claimed) / 1e6).toFixed(2) });
-  } catch (error) { res.status(500).json({ error: error.message }); }
+    if (!userReward) return res.json({ 
+      address, 
+      pending: '0', 
+      claimed: '0', 
+      pendingUSDC: '0.00', 
+      claimedUSDC: '0.00' 
+    });
+    res.json({ 
+      address: userReward.provider, 
+      pending: userReward.pending, 
+      claimed: userReward.claimed, 
+      pendingUSDC: (Number(userReward.pending) / 1e6).toFixed(2), 
+      claimedUSDC: (Number(userReward.claimed) / 1e6).toFixed(2) 
+    });
+  } catch (error) { 
+    res.status(500).json({ error: error.message }); 
+  }
 });
+
 app.get('/api/positions/:address', (req, res) => {
   try {
     const address = req.params.address.toLowerCase();
-    const userEvents = data.events.filter(e => e.provider.toLowerCase() === address && e.type === 'LiquidityAdded');
+    const userEvents = data.events.filter(e => 
+      e.provider.toLowerCase() === address && e.type === 'LiquidityAdded'
+    );
     const positions = {};
     for (const event of userEvents) {
-      if (!positions[event.chain]) positions[event.chain] = { liquidity: 0n, chainId: CHAINS[event.chain].chainId, chainName: CHAINS[event.chain].name };
+      if (!positions[event.chain]) positions[event.chain] = { 
+        liquidity: 0n, 
+        chainId: CHAINS[event.chain].chainId, 
+        chainName: CHAINS[event.chain].name 
+      };
       positions[event.chain].liquidity += BigInt(event.liquidityDelta);
     }
-    res.json({ address, positions: Object.entries(positions).map(([chain, data]) => ({ chain, chainId: data.chainId, chainName: data.chainName, liquidity: data.liquidity.toString() })) });
-  } catch (error) { res.status(500).json({ error: error.message }); }
+    
+    res.json({ 
+      address, 
+      positions: Object.entries(positions).map(([chain, data]) => {
+        const totalLiquidity = data.liquidity;
+        const usdcAmount = totalLiquidity / 2n;
+        const wethAmount = totalLiquidity / 2n;
+        
+        return {
+          chain, 
+          chainId: data.chainId, 
+          chainName: data.chainName, 
+          totalLiquidity: totalLiquidity.toString(),
+          usdc: usdcAmount.toString(),
+          weth: wethAmount.toString()
+        };
+      }) 
+    });
+  } catch (error) { 
+    res.status(500).json({ error: error.message }); 
+  }
 });
 
-// ============ CCTP CLAIM ============
-app.post('/api/claim', async (req, res) => {
+// ============ CLAIMS ENDPOINTS ============
+app.get('/api/claims/:claimId', (req, res) => {
   try {
-    const { address, destinationChainId } = req.body;
+    const claim = data.claims?.find(c => c.id === req.params.claimId);
+    if (!claim) {
+      return res.status(404).json({ error: 'Claim not found' });
+    }
+    res.json(claim);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/claims/user/:address', (req, res) => {
+  try {
+    const address = req.params.address.toLowerCase();
+    const userClaims = data.claims?.filter(c => 
+      c.recipient.toLowerCase() === address
+    ) || [];
+    res.json({ claims: userClaims });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============ CCTP CLAIM (STOPS AT ATTESTATION - AUTO-RELAY HANDLES MINT) ============
+app.post('/api/claim', async (req, res) => {
+  req.setTimeout(1800000);
+  res.setTimeout(1800000);
+  
+  try {
+    const { address, amount, destinationChainId } = req.body;
+    
+    // Validate: Prevent same-chain claims
+    if (destinationChainId === 11155111) {
+      return res.status(400).json({ 
+        error: 'Cannot claim to Ethereum Sepolia (same chain as treasury). Please select Base Sepolia as destination.' 
+      });
+    }
+    
     const addressLower = address.toLowerCase();
     const rewards = await calculateRewards();
     const userReward = rewards.find(r => r.provider.toLowerCase() === addressLower);
-    if (!userReward || BigInt(userReward.pending) === 0n) return res.status(400).json({ error: 'No rewards' });
     
-    console.log(`💰 Claim: ${address} → ${Number(userReward.pending) / 1e6} USDC to chain ${destinationChainId}`);
+    if (!userReward || BigInt(userReward.pending) === 0n) {
+      return res.status(400).json({ error: 'No rewards available' });
+    }
+    
+    let claimAmount;
+    if (amount) {
+      claimAmount = BigInt(amount);
+      if (claimAmount > BigInt(userReward.pending)) {
+        return res.status(400).json({ error: 'Claim amount exceeds available rewards' });
+      }
+    } else {
+      claimAmount = BigInt(userReward.pending);
+    }
+    
+    console.log(`\n💰 CLAIM INITIATED`);
+    console.log(`   User: ${address}`);
+    console.log(`   Amount: ${Number(claimAmount) / 1e6} USDC`);
+    console.log(`   Destination: Chain ${destinationChainId}\n`);
+    
+    // Generate unique claim ID
+    const claimId = `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Step 1: Approve USDC
-    const usdc = new ethers.Contract(CHAINS.ethereum.usdc, ['function approve(address,uint256) returns (bool)'], treasury);
-    const approveTx = await usdc.approve(CCTP_CONTRACTS[11155111].tokenMessenger, userReward.pending);
+    console.log('📝 Step 1/3: Approving USDC...');
+    const usdc = new ethers.Contract(
+      CHAINS.ethereum.usdc, 
+      ['function approve(address,uint256) returns (bool)'], 
+      treasury
+    );
+    const approveTx = await usdc.approve(
+      CCTP_CONTRACTS[11155111].tokenMessenger, 
+      claimAmount
+    );
     await approveTx.wait();
-    console.log('✅ USDC approved');
+    console.log('✅ USDC approved\n');
     
     // Step 2: Burn USDC
+    console.log('🔥 Step 2/3: Burning USDC on Ethereum...');
     const messenger = new ethers.Contract(
       CCTP_CONTRACTS[11155111].tokenMessenger,
       ['function depositForBurn(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken) returns (uint64)'],
       treasury
     );
     const mintRecipient = ethers.zeroPadValue(address, 32);
-    const burnTx = await messenger.depositForBurn(userReward.pending, CCTP_CONTRACTS[destinationChainId].domain, mintRecipient, CHAINS.ethereum.usdc);
+    const burnTx = await messenger.depositForBurn(
+      claimAmount, 
+      CCTP_CONTRACTS[destinationChainId].domain, 
+      mintRecipient, 
+      CHAINS.ethereum.usdc
+    );
     const burnReceipt = await burnTx.wait();
-    console.log(`🔥 Burned on Ethereum: ${burnTx.hash}`);
+    console.log(`✅ Burned on Ethereum: ${burnTx.hash}\n`);
     
-    // Step 3: Get attestation (polling)
-    console.log('⏳ Waiting for attestation (10-15 min)...');
-    let attestation;
-    for (let i = 0; i < 60; i++) {
-      await new Promise(r => setTimeout(r, 30000)); // 30s
+    // Step 3: Extract message
+    console.log('📝 Step 3/3: Extracting message from burn transaction...');
+    const messageTransmitterInterface = new ethers.Interface([
+      'event MessageSent(bytes message)'
+    ]);
+
+    let messageBytes;
+    for (const log of burnReceipt.logs) {
       try {
-        const response = await axios.get(`${ATTESTATION_API}/${burnTx.hash}`);
-        if (response.data.status === 'complete') {
-          attestation = response.data.attestation;
+        const parsed = messageTransmitterInterface.parseLog({
+          topics: log.topics,
+          data: log.data
+        });
+        if (parsed && parsed.name === 'MessageSent') {
+          messageBytes = parsed.args.message;
           break;
         }
-      } catch (e) {}
+      } catch (e) {
+        continue;
+      }
     }
-    if (!attestation) return res.status(500).json({ error: 'Attestation timeout' });
-    console.log('✅ Attestation received');
+
+    if (!messageBytes) {
+      throw new Error('MessageSent event not found in transaction logs');
+    }
+
+    const messageHash = ethers.keccak256(messageBytes);
+    console.log(`✅ Message hash: ${messageHash}\n`);
     
-    // Step 4: Mint on destination
-    const destProvider = destinationChainId === 84532 ? providers.base : providers.ethereum;
-    const destSigner = treasury.connect(destProvider);
-    const transmitter = new ethers.Contract(
-      CCTP_CONTRACTS[destinationChainId].messageTransmitter,
-      ['function receiveMessage(bytes calldata message, bytes calldata attestation) returns (bool)'],
-      destSigner
-    );
-    const messageBytes = burnReceipt.logs[0].data; // Simplified - actual parsing needed
-    const mintTx = await transmitter.receiveMessage(messageBytes, attestation);
-    await mintTx.wait();
-    console.log(`✨ Minted on destination: ${mintTx.hash}\n`);
+    // Step 4: Wait for attestation
+    console.log('⏳ Step 4/4: Waiting for Circle attestation (this takes 10-15 min)...');
+    let attestation;
+    let attestationStatus = 'pending';
+    let attemptCount = 0;
+    const maxAttempts = 60;
     
-    data.claimed[addressLower] = userReward.pending;
+    for (let i = 0; i < maxAttempts; i++) {
+      attemptCount++;
+      await new Promise(r => setTimeout(r, 15000));
+      
+      try {
+        const response = await axios.get(`${ATTESTATION_API}/${messageHash}`);
+        attestationStatus = response.data.status;
+        
+        if (response.data.status === 'complete') {
+          attestation = response.data.attestation;
+          console.log(`✅ Attestation received after ${attemptCount * 15} seconds\n`);
+          break;
+        } else {
+          if (attemptCount % 4 === 0) {
+            console.log(`   ⏳ Waiting... (${attemptCount * 15}s elapsed, status: ${response.data.status})`);
+          }
+        }
+      } catch (e) {
+        if (attemptCount % 4 === 0) {
+          console.log(`   ⏳ Polling... (${attemptCount * 15}s elapsed)`);
+        }
+      }
+    }
+    
+    if (!attestation) {
+      // Save to queue as pending attestation
+      const claim = {
+        id: claimId,
+        recipient: address,
+        amount: claimAmount.toString(),
+        amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
+        burnTx: burnTx.hash,
+        messageHash: messageHash,
+        messageBytes: messageBytes,
+        destinationChainId: destinationChainId,
+        destinationChain: destinationChainId === 84532 ? 'Base Sepolia' : 'Ethereum Sepolia',
+        status: 'pending_attestation',
+        attestationStatus: attestationStatus,
+        timestamp: Date.now(),
+        attestationAttempts: attemptCount
+      };
+      
+      data.claims.push(claim);
+      
+      // Update claimed amount immediately (tokens are already burned)
+      const previousClaimed = BigInt(data.claimed[addressLower] || '0');
+      data.claimed[addressLower] = (previousClaimed + claimAmount).toString();
+      saveData();
+      
+      console.error('⚠️ Attestation timeout - claim saved to queue\n');
+      return res.status(202).json({ 
+        success: true,
+        status: 'pending_attestation',
+        claimId: claimId,
+        burnTx: burnTx.hash,
+        messageHash: messageHash,
+        amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
+        message: 'Claim queued. Circle CCTP will complete the transfer automatically within 15-20 minutes. You can close this page.'
+      });
+    }
+    
+    // ✅ ATTESTATION RECEIVED - STOP HERE, AUTO-RELAY WILL MINT
+    console.log('✅ Attestation complete - Circle CCTP auto-relay will handle minting\n');
+    
+    const claim = {
+      id: claimId,
+      recipient: address,
+      amount: claimAmount.toString(),
+      amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
+      burnTx: burnTx.hash,
+      messageHash: messageHash,
+      messageBytes: messageBytes,
+      attestation: attestation.substring(0, 50) + '...', // Store shortened version
+      destinationChainId: destinationChainId,
+      destinationChain: destinationChainId === 84532 ? 'Base Sepolia' : 'Ethereum Sepolia',
+      status: 'attested',
+      timestamp: Date.now(),
+      attestationTime: attemptCount * 15
+    };
+    
+    data.claims.push(claim);
+    
+    // Update claimed amount
+    const previousClaimed = BigInt(data.claimed[addressLower] || '0');
+    data.claimed[addressLower] = (previousClaimed + claimAmount).toString();
     saveData();
     
-    res.json({ success: true, burnTx: burnTx.hash, mintTx: mintTx.hash, amountUSDC: (Number(userReward.pending) / 1e6).toFixed(2) });
+    console.log('🎉 CLAIM COMPLETED - Auto-relay will mint tokens!\n');
+    
+    res.json({ 
+      success: true,
+      status: 'attested',
+      claimId: claimId,
+      burnTx: burnTx.hash,
+      messageHash: messageHash,
+      amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
+      remainingUSDC: (Number(BigInt(userReward.pending) - claimAmount) / 1e6).toFixed(2),
+      message: 'Attestation received! Circle CCTP auto-relay will deliver your USDC within 5 minutes.',
+      estimatedDelivery: '2-5 minutes'
+    });
+    
   } catch (error) {
-    console.error('❌', error.message);
+    console.error('❌ CLAIM ERROR:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -247,8 +493,17 @@ app.get('/api/treasury', async (req, res) => {
     const balance = await getTreasuryBalance();
     const rewards = await calculateRewards();
     const totalClaimed = Object.values(data.claimed).reduce((sum, val) => sum + BigInt(val), 0n);
-    res.json({ address: treasury.address, balance: balance.toString(), balanceUSDC: (Number(balance) / 1e6).toFixed(2), totalClaimed: totalClaimed.toString(), totalClaimedUSDC: (Number(totalClaimed) / 1e6).toFixed(2), activeProviders: rewards.length });
-  } catch (error) { res.status(500).json({ error: error.message }); }
+    res.json({ 
+      address: treasury.address, 
+      balance: balance.toString(), 
+      balanceUSDC: (Number(balance) / 1e6).toFixed(2), 
+      totalClaimed: totalClaimed.toString(), 
+      totalClaimedUSDC: (Number(totalClaimed) / 1e6).toFixed(2), 
+      activeProviders: rewards.length 
+    });
+  } catch (error) { 
+    res.status(500).json({ error: error.message }); 
+  }
 });
 
 const PORT = process.env.PORT || 3000;

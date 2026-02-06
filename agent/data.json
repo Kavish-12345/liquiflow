@@ -45,5 +45,40 @@
       "blockNumber": 10182785
     }
   ],
-  "claimed": {}
+  "claimed": {
+    "0x499c8bb98c1962aa6329b515f918836024ee746f": "2160000"
+  },
+  "claims": [
+    {
+      "id": "claim_1770387866188_d2dugw5ik",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "200000",
+      "amountUSDC": "0.20",
+      "burnTx": "0xaa48ad48aa75f1cd208fe77d69a0bbbe95b945e3b6bd21eaff3867f4eb04f99a",
+      "mintTx": null,
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "pending",
+      "timestamp": 1770387866188,
+      "estimatedCompletion": 1770388766188,
+      "initialBalance": "52035411",
+      "verifiedBalance": null,
+      "completedAt": null
+    },
+    {
+      "id": "claim_1770405165429_5q72mb747",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "burnTx": "0xeab5609822a5c099be15f7b3c53f4da366deec51350826b64c68ff9b65ae0b3c",
+      "messageHash": "0x3b19ea13925d0748de93febf9283646d012bd754d1516a1d860ae3f7c7b0f396",
+      "messageBytes": "0x0000000000000000000000060000000000096cf80000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa50000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c7238000000000000000000000000499c8bb98c1962aa6329b515f918836024ee746f00000000000000000000000000000000000000000000000000000000000f4240000000000000000000000000fe6887759cf0cc3b447cd20f510e6b03448edd93",
+      "attestation": "0x302a15c2f87f098e2af6b0c04ad78fc1e505a5887a8bf3b7...",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "attested",
+      "timestamp": 1770405996779,
+      "attestationTime": 780
+    }
+  ]
 }

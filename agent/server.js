@@ -7,7 +7,13 @@ const axios = require('axios');
 const hookABI = require('./hookABI.json');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://liquiflow.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 console.log('🚀 LiquidFlow Agent Starting...\n');

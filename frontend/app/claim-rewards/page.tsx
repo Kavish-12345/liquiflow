@@ -10,8 +10,7 @@ declare global {
     ethereum?: any;
   }
 }
-
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://liquiflow-1.onrender.com/api';
 
 // Chain mapping
 const CHAIN_NAMES: { [key: number]: string } = {

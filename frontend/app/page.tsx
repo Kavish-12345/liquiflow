@@ -10,7 +10,7 @@ export default function Landing() {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-8xl md:text-9xl font-light tracking-tighter mb-6 leading-none">
-            LiquidFlow
+            LiquiFlow
           </h1>
           <p className="text-xl md:text-2xl text-gray-500 font-light tracking-wide max-w-2xl mx-auto leading-relaxed">
             Cross-chain liquidity rewards protocol. Earn USDC on your LP positions across Ethereum and Base.

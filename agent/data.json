@@ -43,6 +43,94 @@
       "chainId": "11155111",
       "txHash": "0xe78641bbb1c9ff85d50d01b5ff8c92f5d484a132d1a47c5d8acf60ff43edc9f8",
       "blockNumber": 10182785
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x6fDf15C2A6A952ba2688b927C77F3e4cCf3ebAA9",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "105240",
+      "timestamp": "1770452760",
+      "chainId": "11155111",
+      "txHash": "0xaf7cb100302dd860a804f2a3ca8b0ea47ef8fa2bc1b87af551fe513617ab3823",
+      "blockNumber": 10209297
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x6fDf15C2A6A952ba2688b927C77F3e4cCf3ebAA9",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "105240",
+      "timestamp": "1770457440",
+      "chainId": "11155111",
+      "txHash": "0x32c32af57b11e9a266c566d531d943dd2dc6595134398137e36901fdfdecc293",
+      "blockNumber": 10209674
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x6fDf15C2A6A952ba2688b927C77F3e4cCf3ebAA9",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "1052403",
+      "timestamp": "1770457692",
+      "chainId": "11155111",
+      "txHash": "0x0804c386b27104fb427513a2f707107dc2103e701495660a985af91c62011765",
+      "blockNumber": 10209695
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x6fDf15C2A6A952ba2688b927C77F3e4cCf3ebAA9",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "1052403",
+      "timestamp": "1770457980",
+      "chainId": "11155111",
+      "txHash": "0x7c36627c25ced7048a58fb7d1e4832af6c167979fe835d73234a30a85b83db69",
+      "blockNumber": 10209719
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x6fDf15C2A6A952ba2688b927C77F3e4cCf3ebAA9",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "1052403",
+      "timestamp": "1770458136",
+      "chainId": "11155111",
+      "txHash": "0x9a1db5afcfc5b6c92b1ff8d84e99995dcabbc220aec898669ff141799f37958a",
+      "blockNumber": 10209731
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "base",
+      "provider": "0x499c8bB98c1962aa6329B515f918836024EE746f",
+      "poolId": "0xd995d8c2ab3c658024c216b6064f4e13075216400040100c5929e20c8e44ddfb",
+      "liquidityDelta": "105240",
+      "timestamp": "1770458614",
+      "chainId": "84532",
+      "txHash": "0x773a503fe4186313701667538b1ef6bc8b506830e39819151a4fd0b2b496a713",
+      "blockNumber": 37345163
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "base",
+      "provider": "0x499c8bB98c1962aa6329B515f918836024EE746f",
+      "poolId": "0xd995d8c2ab3c658024c216b6064f4e13075216400040100c5929e20c8e44ddfb",
+      "liquidityDelta": "105240",
+      "timestamp": "1770474976",
+      "chainId": "84532",
+      "txHash": "0xac05ff4a952bba1d752fd4031ab1a690011af0281c66d88fc8de31eaf3720ada",
+      "blockNumber": 37353344
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "base",
+      "provider": "0x499c8bB98c1962aa6329B515f918836024EE746f",
+      "poolId": "0xd995d8c2ab3c658024c216b6064f4e13075216400040100c5929e20c8e44ddfb",
+      "liquidityDelta": "1052403",
+      "timestamp": "1770475372",
+      "chainId": "84532",
+      "txHash": "0x99e81ae9584ccce4183b59a3650a0cd71ac6d8407de2b8d61f960e79f5ba5078",
+      "blockNumber": 37353542
     }
   ],
   "claimed": {

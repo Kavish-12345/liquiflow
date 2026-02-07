@@ -10,7 +10,8 @@ declare global {
     ethereum?: any;
   }
 }
-const API_URL = 'https://liquiflow-1.onrender.com/api';
+
+const API_URL = 'http://localhost:3000/api';  
 
 // Chain mapping
 const CHAIN_NAMES: { [key: number]: string } = {
@@ -115,52 +116,59 @@ export default function ClaimRewards() {
     }
   }, [address]);
 
-  async function claim() {
-    const amount = parseFloat(claimAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Enter a valid amount');
-      return;
-    }
-    
-    const maxClaim = parseFloat(rewards.pendingUSDC);
-    if (amount > maxClaim) {
-      toast.error(`Cannot claim more than ${maxClaim} USDC`);
-      return;
-    }
-
-    setClaiming(true);
-    const loadingToast = toast.loading('Processing claim...');
-    
-    try {
-      const amountInWei = (amount * 1e6).toString(); // Convert to 6 decimals
-      const res = await fetch(`${API_URL}/claim`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          address,
-          amount: amountInWei,
-          destinationChainId: parseInt(destinationChain)
-        })
-      });
-      const data = await res.json();
-      
-      toast.dismiss(loadingToast);
-      
-      if (data.success) {
-        toast.success(`Successfully claimed ${amount} USDC!`);
-        setClaimAmount('');
-        // Refresh data
-        setTimeout(() => window.location.reload(), 2000);
-      } else {
-        toast.error(data.error || 'Claim failed');
-      }
-    } catch (e: any) {
-      toast.dismiss(loadingToast);
-      toast.error(e.message || 'An error occurred');
-    }
-    setClaiming(false);
+async function claim() {
+  const amount = parseFloat(claimAmount);
+  if (!amount || amount <= 0) {
+    toast.error('Enter a valid amount');
+    return;
+  }
+  
+  const maxClaim = parseFloat(rewards.pendingUSDC);
+  if (amount > maxClaim) {
+    toast.error(`Cannot claim more than ${maxClaim} USDC`);
+    return;
   }
 
+  setClaiming(true);
+  const loadingToast = toast.loading('Initiating bridge transfer...');
+  
+  try {
+    const amountInWei = (amount * 1e6).toString();
+    const res = await fetch(`${API_URL}/claim`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        address,
+        amount: amountInWei,
+        destinationChainId: parseInt(destinationChain)
+      })
+    });
+    const data = await res.json();
+    
+    toast.dismiss(loadingToast);
+    
+    if (data.success) {
+      // Show success for each step
+      if (data.steps) {
+        data.steps.forEach((step: any) => {
+          if (step.state === 'success' && step.txHash) {
+            toast.success(`${step.name} completed: ${step.txHash.slice(0, 10)}...`);
+          }
+        });
+      }
+      
+      toast.success(`Successfully bridged ${amount} USDC!`);
+      setClaimAmount('');
+      setTimeout(() => window.location.reload(), 3000);
+    } else {
+      toast.error(data.error || 'Claim failed');
+    }
+  } catch (e: any) {
+    toast.dismiss(loadingToast);
+    toast.error(e.message || 'An error occurred');
+  }
+  setClaiming(false);
+}
   const truncateAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
@@ -201,7 +209,7 @@ export default function ClaimRewards() {
   <div className="flex items-center gap-8">
     <Link href="/" className="hover:opacity-70 transition-opacity">
       <h1 className="text-6xl font-light tracking-tight mb-3">
-        LiquidFlow
+        LiquiFlow
       </h1>
       <p className="text-gray-500 text-lg font-light">
         Cross-Chain LP Rewards Protocol

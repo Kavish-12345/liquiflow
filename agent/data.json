@@ -134,7 +134,8 @@
     }
   ],
   "claimed": {
-    "0x499c8bb98c1962aa6329b515f918836024ee746f": "2260000"
+    "0x499c8bb98c1962aa6329b515f918836024ee746f": "4560000",
+    "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9": "5000000"
   },
   "claims": [
     {
@@ -182,6 +183,346 @@
       "attestationStatus": "pending_confirmations",
       "timestamp": 1770476589069,
       "attestationAttempts": 60
+    },
+    {
+      "id": "claim_1770499194810_fauo4v64x",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "20000",
+      "amountUSDC": "0.02",
+      "approveTx": "0xcc19fa081bda0e629fbdaaae196993411c2e9243cc524cd8a5b39b7dfeb8a5cc",
+      "burnTx": "0xc4ec419ff59ef94feab5424b64bfda63fddcfac4c8af7d59046d5ede1812a134",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 11155111,
+      "destinationChain": "Ethereum Sepolia",
+      "status": "error",
+      "timestamp": 1770499225705,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0xcc19fa081bda0e629fbdaaae196993411c2e9243cc524cd8a5b39b7dfeb8a5cc"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0xc4ec419ff59ef94feab5424b64bfda63fddcfac4c8af7d59046d5ede1812a134"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "error"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770499308292_a7y6i70ho",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "990000",
+      "amountUSDC": "0.99",
+      "approveTx": "0x7757de477448b4abe8a2a2c0d63976232bf7095573dcf2385745d5e06ca572ce",
+      "burnTx": "0xc0c1145d58c71cbd092b775303228379ec389d0a37ff59c08fb6569b1c4df9e6",
+      "mintTx": "0x59151cfa711165127716cb2b8ba6ba1b19c0272f088e806f6bfb5ffe693562aa",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 11155111,
+      "destinationChain": "Ethereum Sepolia",
+      "status": "completed",
+      "timestamp": 1770499333371,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x7757de477448b4abe8a2a2c0d63976232bf7095573dcf2385745d5e06ca572ce"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0xc0c1145d58c71cbd092b775303228379ec389d0a37ff59c08fb6569b1c4df9e6"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "success",
+          "txHash": "0x59151cfa711165127716cb2b8ba6ba1b19c0272f088e806f6bfb5ffe693562aa"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770499416728_hnjjtgm02",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "90000",
+      "amountUSDC": "0.09",
+      "approveTx": "0xb099560b19e2d710bcdd7e7fcefe39262ec7c2d2199a0f4274fef7fcd217bea0",
+      "burnTx": "0x689c5c61aa537eb25ff4cc8c93a4a667f1424df6644f91be71771b0099ead95e",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "error",
+      "timestamp": 1770499435095,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0xb099560b19e2d710bcdd7e7fcefe39262ec7c2d2199a0f4274fef7fcd217bea0"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0x689c5c61aa537eb25ff4cc8c93a4a667f1424df6644f91be71771b0099ead95e"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "error"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770499468608_m2lgglpsz",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "approveTx": "0xcd465d7afd71a770a252d0c5ec36b0adb3bc5378f52f933ec17161a5832740a2",
+      "burnTx": "0x8175ee6b5231f46b4693a9d66d6dcb7f5acd71b50a1ce30678448b60cea9c4ef",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 11155111,
+      "destinationChain": "Ethereum Sepolia",
+      "status": "error",
+      "timestamp": 1770499489396,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0xcd465d7afd71a770a252d0c5ec36b0adb3bc5378f52f933ec17161a5832740a2"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0x8175ee6b5231f46b4693a9d66d6dcb7f5acd71b50a1ce30678448b60cea9c4ef"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "error"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770499567357_8x9hdfta5",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "200000",
+      "amountUSDC": "0.20",
+      "approveTx": "0x60c555b0b6db8607dd4a54d08c9b393cc4414fb9d684ee96d8ffed3c1e5517e6",
+      "burnTx": "0xb28639498065b2b79d786f7bf39a8834655ca77404921e1209bcc02959d4e9f4",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "error",
+      "timestamp": 1770499583343,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x60c555b0b6db8607dd4a54d08c9b393cc4414fb9d684ee96d8ffed3c1e5517e6"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0xb28639498065b2b79d786f7bf39a8834655ca77404921e1209bcc02959d4e9f4"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "error"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770499820756_ncdcwew8c",
+      "recipient": "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "approveTx": "0x109cf34e5a8e46ac579cef8edd34e3ea3aace4edd2227dd12c888b2459ec5de4",
+      "burnTx": "0xb893c1e5cc0374318566acf10250f46dbcd96fa5ddb07daec6cca4ca8f3978a0",
+      "mintTx": "0x3b1d5affa33840d21cb87a2b704bfd4848dfe2e13cd3ff730f0fb174f544e401",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 11155111,
+      "destinationChain": "Ethereum Sepolia",
+      "status": "completed",
+      "timestamp": 1770499862777,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x109cf34e5a8e46ac579cef8edd34e3ea3aace4edd2227dd12c888b2459ec5de4"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0xb893c1e5cc0374318566acf10250f46dbcd96fa5ddb07daec6cca4ca8f3978a0"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "success",
+          "txHash": "0x3b1d5affa33840d21cb87a2b704bfd4848dfe2e13cd3ff730f0fb174f544e401"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770499987057_7exzrsg3e",
+      "recipient": "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "approveTx": "0x6ca1aa95d1156a5201b7df2d3d7dc8e53ff908d68b50e56a8ad52568e20f2d05",
+      "burnTx": "0xc4be1303bbfb8852109072237ca0b6817d0085f8eb3eddf7db101e74f57f72f0",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "error",
+      "timestamp": 1770500005552,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x6ca1aa95d1156a5201b7df2d3d7dc8e53ff908d68b50e56a8ad52568e20f2d05"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0xc4be1303bbfb8852109072237ca0b6817d0085f8eb3eddf7db101e74f57f72f0"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "error",
+          "error": "mint step failed: Insufficient token balance on Base Sepolia"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770500051714_xgxwszzpz",
+      "recipient": "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "approveTx": "0x3b425f6d79d940384300fd946e631cb5f3437ec6374999035ae6da70c9833000",
+      "burnTx": "0xa987fd529af5d9f8dafd891e4becd0794cb3d43394a2f58e3c132269b792d301",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "error",
+      "timestamp": 1770500066472,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x3b425f6d79d940384300fd946e631cb5f3437ec6374999035ae6da70c9833000"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0xa987fd529af5d9f8dafd891e4becd0794cb3d43394a2f58e3c132269b792d301"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "error",
+          "error": "mint step failed: Insufficient token balance on Base Sepolia"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770500273849_bt372ktoz",
+      "recipient": "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "approveTx": "0x899160a04d41c120260ebb0a232262579d164ad9a8c4216d16241971d20fefb9",
+      "burnTx": "0x419b36308ac778844d44658444fdbf7c2d3008794bf6b42bdc0ce87e2739c1ab",
+      "mintTx": "0xeb0bb3f7cf721faa6796cf9f4992745d593c0bf8131e041a5431adf70cf90436",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 11155111,
+      "destinationChain": "Ethereum Sepolia",
+      "status": "completed",
+      "timestamp": 1770500295150,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x899160a04d41c120260ebb0a232262579d164ad9a8c4216d16241971d20fefb9"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0x419b36308ac778844d44658444fdbf7c2d3008794bf6b42bdc0ce87e2739c1ab"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "success",
+          "txHash": "0xeb0bb3f7cf721faa6796cf9f4992745d593c0bf8131e041a5431adf70cf90436"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770500710724_uu7zitw08",
+      "recipient": "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9",
+      "amount": "1000000",
+      "amountUSDC": "1.00",
+      "approveTx": "0x9962a238c3f178f01eeaf66a304e9cfbb61e8139585db8970e9a2983c7f9d9b4",
+      "burnTx": "0x843420a487e4386efba890298375cbf7ab6da00197509cc3da34f09952e21128",
+      "mintTx": "0x8fe7679bb7706e6493a61ee3f417618cb823be4f01531f8d0b98148cbf2449e1",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "completed",
+      "timestamp": 1770500729190,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x9962a238c3f178f01eeaf66a304e9cfbb61e8139585db8970e9a2983c7f9d9b4"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0x843420a487e4386efba890298375cbf7ab6da00197509cc3da34f09952e21128"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "success",
+          "txHash": "0x8fe7679bb7706e6493a61ee3f417618cb823be4f01531f8d0b98148cbf2449e1"
+        }
+      ]
     }
   ]
 }

@@ -6,10 +6,17 @@ const cors = require('cors');
 const axios = require('axios');
 const hookABI = require('./hookABI.json');
 
+const { BridgeKit } = require('@circle-fin/bridge-kit');
+const { createAdapterFromPrivateKey } = require('@circle-fin/adapter-viem-v2');
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+};
 const app = express();
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
     'https://liquiflow.vercel.app'
   ],
   credentials: true
@@ -19,6 +26,7 @@ app.use(express.json());
 console.log('🚀 LiquidFlow Agent Starting...\n');
 
 // ============ CCTP Contract Addresses ============
+// Updated with official Arc Testnet CCTP addresses from docs.arc.network
 const CCTP_CONTRACTS = {
   11155111: { // Ethereum Sepolia
     tokenMessenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
@@ -29,10 +37,29 @@ const CCTP_CONTRACTS = {
     tokenMessenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
     messageTransmitter: '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD',
     domain: 6
+  },
+  5042002: { // Arc Testnet (TREASURY HUB) - Official addresses from Arc docs
+    tokenMessenger: '0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA',
+    messageTransmitter: '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
+    tokenMinter: '0xb43db544E2c27092c107639Ad201b3dEfAbcF192',
+    domain: 26 // Official Arc Testnet CCTP domain
   }
 };
 
 const ATTESTATION_API = 'https://iris-api-sandbox.circle.com/v1/attestations';
+
+
+
+// Define destination chains
+const sepolia = {
+  id: 11155111,
+  name: 'Sepolia',
+};
+
+const baseSepolia = {
+  id: 84532,
+  name: 'Base Sepolia',
+};
 
 // ============ Chain Configuration ============
 const CHAINS = {
@@ -49,12 +76,19 @@ const CHAINS = {
     usdc: process.env.USDC_BASE,
     rpc: process.env.BASE_RPC,
     hook: process.env.HOOK_BASE
+  },
+  arc: { // TREASURY CHAIN (no hook needed!)
+    chainId: 5042002,
+    name: 'Arc Testnet',
+    usdc: '0x3600000000000000000000000000000000000000', // Arc's native USDC (ERC-20 interface)
+    rpc: process.env.ARC_RPC
   }
 };
 
 const providers = {
   ethereum: new ethers.JsonRpcProvider(CHAINS.ethereum.rpc),
-  base: new ethers.JsonRpcProvider(CHAINS.base.rpc)
+  base: new ethers.JsonRpcProvider(CHAINS.base.rpc),
+  arc: new ethers.JsonRpcProvider(CHAINS.arc.rpc)
 };
 
 const hooks = {
@@ -62,11 +96,14 @@ const hooks = {
   base: new ethers.Contract(CHAINS.base.hook, hookABI, providers.base)
 };
 
-const treasury = new ethers.Wallet(process.env.TREASURY_PRIVATE_KEY, providers.ethereum);
+// Treasury wallet now on Arc Testnet!
+const treasury = new ethers.Wallet(process.env.TREASURY_PRIVATE_KEY, providers.arc);
 
-console.log('💰 Treasury:', treasury.address);
+console.log('💰 Treasury Address:', treasury.address);
+console.log('🏦 Treasury Chain: Arc Testnet (5042002)');
 console.log('📡 ETH Hook:', CHAINS.ethereum.hook);
-console.log('📡 Base Hook:', CHAINS.base.hook, '\n');
+console.log('📡 Base Hook:', CHAINS.base.hook);
+console.log();
 
 // ============ Storage ============
 let data = { events: [], claimed: {}, claims: [] };
@@ -77,7 +114,6 @@ function loadData() {
       const content = fs.readFileSync('./data.json', 'utf8');
       if (content.trim()) {
         const loaded = JSON.parse(content);
-        // Ensure claims array exists
         if (!loaded.claims) loaded.claims = [];
         return loaded;
       }
@@ -93,12 +129,12 @@ function saveData() {
 data = loadData();
 console.log(`📂 Loaded ${data.events.length} events\n`);
 
-// ============ Treasury Balance ============
+// ============ Treasury Balance (ON ARC!) ============
 async function getTreasuryBalance() {
   const usdc = new ethers.Contract(
-    CHAINS.ethereum.usdc,
+    CHAINS.arc.usdc,
     ['function balanceOf(address) view returns (uint256)'],
-    providers.ethereum
+    providers.arc
   );
   return await usdc.balanceOf(treasury.address);
 }
@@ -170,7 +206,7 @@ function handleEvent(chain, type) {
   };
 }
 
-console.log('🎧 Listening...\n');
+console.log('🎧 Listening for LP events on Ethereum & Base...\n');
 hooks.ethereum.on('LiquidityAdded', handleEvent('ethereum', 'LiquidityAdded'));
 hooks.ethereum.on('LiquidityRemoved', handleEvent('ethereum', 'LiquidityRemoved'));
 hooks.base.on('LiquidityAdded', handleEvent('base', 'LiquidityAdded'));
@@ -179,7 +215,8 @@ hooks.base.on('LiquidityRemoved', handleEvent('base', 'LiquidityRemoved'));
 // ============ API ============
 app.get('/api/health', (req, res) => res.json({ 
   status: 'running', 
-  treasury: treasury.address, 
+  treasury: treasury.address,
+  treasuryChain: 'Arc Testnet (5042002)',
   chains: Object.keys(CHAINS), 
   events: data.events.length 
 }));
@@ -279,7 +316,8 @@ app.get('/api/claims/user/:address', (req, res) => {
   }
 });
 
-// ============ CCTP CLAIM (STOPS AT ATTESTATION - AUTO-RELAY HANDLES MINT) ============
+
+
 app.post('/api/claim', async (req, res) => {
   req.setTimeout(1800000);
   res.setTimeout(1800000);
@@ -287,10 +325,9 @@ app.post('/api/claim', async (req, res) => {
   try {
     const { address, amount, destinationChainId } = req.body;
     
-    // Validate: Prevent same-chain claims
-    if (destinationChainId === 11155111) {
+    if (destinationChainId === 5042002) {
       return res.status(400).json({ 
-        error: 'Cannot claim to Ethereum Sepolia (same chain as treasury). Please select Base Sepolia as destination.' 
+        error: 'Cannot claim to Arc Testnet (treasury chain).' 
       });
     }
     
@@ -302,195 +339,133 @@ app.post('/api/claim', async (req, res) => {
       return res.status(400).json({ error: 'No rewards available' });
     }
     
-    let claimAmount;
-    if (amount) {
-      claimAmount = BigInt(amount);
-      if (claimAmount > BigInt(userReward.pending)) {
-        return res.status(400).json({ error: 'Claim amount exceeds available rewards' });
-      }
-    } else {
-      claimAmount = BigInt(userReward.pending);
+    let claimAmount = amount ? BigInt(amount) : BigInt(userReward.pending);
+    
+    if (claimAmount > BigInt(userReward.pending)) {
+      return res.status(400).json({ error: 'Claim amount exceeds available rewards' });
     }
     
-    console.log(`\n💰 CLAIM INITIATED`);
+    console.log(`\n💰 CLAIM INITIATED VIA BRIDGE KIT`);
     console.log(`   User: ${address}`);
     console.log(`   Amount: ${Number(claimAmount) / 1e6} USDC`);
+    console.log(`   Source: Arc Testnet`);
     console.log(`   Destination: Chain ${destinationChainId}\n`);
     
-    // Generate unique claim ID
     const claimId = `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const destinationChainName = destinationChainId === 84532 ? 'Base_Sepolia' : 'Ethereum_Sepolia';
     
-    // Step 1: Approve USDC
-    console.log('📝 Step 1/3: Approving USDC...');
-    const usdc = new ethers.Contract(
-      CHAINS.ethereum.usdc, 
-      ['function approve(address,uint256) returns (bool)'], 
-      treasury
-    );
-    const approveTx = await usdc.approve(
-      CCTP_CONTRACTS[11155111].tokenMessenger, 
-      claimAmount
-    );
-    await approveTx.wait();
-    console.log('✅ USDC approved\n');
+    console.log('🔧 Initializing Bridge Kit...');
+    const kit = new BridgeKit();
     
-    // Step 2: Burn USDC
-    console.log('🔥 Step 2/3: Burning USDC on Ethereum...');
-    const messenger = new ethers.Contract(
-      CCTP_CONTRACTS[11155111].tokenMessenger,
-      ['function depositForBurn(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken) returns (uint64)'],
-      treasury
-    );
-    const mintRecipient = ethers.zeroPadValue(address, 32);
-    const burnTx = await messenger.depositForBurn(
-      claimAmount, 
-      CCTP_CONTRACTS[destinationChainId].domain, 
-      mintRecipient, 
-      CHAINS.ethereum.usdc
-    );
-    const burnReceipt = await burnTx.wait();
-    console.log(`✅ Burned on Ethereum: ${burnTx.hash}\n`);
+    const adapter = createAdapterFromPrivateKey({
+      privateKey: process.env.TREASURY_PRIVATE_KEY,
+      chain: 'Arc_Testnet',
+    });
     
-    // Step 3: Extract message
-    console.log('📝 Step 3/3: Extracting message from burn transaction...');
-    const messageTransmitterInterface = new ethers.Interface([
-      'event MessageSent(bytes message)'
-    ]);
-
-    let messageBytes;
-    for (const log of burnReceipt.logs) {
-      try {
-        const parsed = messageTransmitterInterface.parseLog({
-          topics: log.topics,
-          data: log.data
-        });
-        if (parsed && parsed.name === 'MessageSent') {
-          messageBytes = parsed.args.message;
-          break;
-        }
-      } catch (e) {
-        continue;
-      }
-    }
-
-    if (!messageBytes) {
-      throw new Error('MessageSent event not found in transaction logs');
-    }
-
-    const messageHash = ethers.keccak256(messageBytes);
-    console.log(`✅ Message hash: ${messageHash}\n`);
+    // Enhanced event logging
+    kit.on('approve', (event) => {
+      console.log(`✅ Approval: ${event.values?.txHash || 'pending'}`);
+    });
     
-    // Step 4: Wait for attestation
-    console.log('⏳ Step 4/4: Waiting for Circle attestation (this takes 10-15 min)...');
-    let attestation;
-    let attestationStatus = 'pending';
-    let attemptCount = 0;
-    const maxAttempts = 60;
+    kit.on('burn', (event) => {
+      console.log(`🔥 Burn: ${event.values?.txHash || 'pending'}`);
+      console.log(`   Message Hash: ${event.values?.messageHash || 'N/A'}`);
+    });
     
-    for (let i = 0; i < maxAttempts; i++) {
-      attemptCount++;
-      await new Promise(r => setTimeout(r, 15000));
-      
-      try {
-        const response = await axios.get(`${ATTESTATION_API}/${messageHash}`);
-        attestationStatus = response.data.status;
-        
-        if (response.data.status === 'complete') {
-          attestation = response.data.attestation;
-          console.log(`✅ Attestation received after ${attemptCount * 15} seconds\n`);
-          break;
-        } else {
-          if (attemptCount % 4 === 0) {
-            console.log(`   ⏳ Waiting... (${attemptCount * 15}s elapsed, status: ${response.data.status})`);
-          }
-        }
-      } catch (e) {
-        if (attemptCount % 4 === 0) {
-          console.log(`   ⏳ Polling... (${attemptCount * 15}s elapsed)`);
-        }
-      }
-    }
+    kit.on('attestation', (event) => {
+      console.log(`📝 Attestation: ${event.values?.attestation ? 'received' : 'pending'}`);
+      console.log(`   Status: ${event.state || 'unknown'}`);
+    });
     
-    if (!attestation) {
-      // Save to queue as pending attestation
-      const claim = {
-        id: claimId,
-        recipient: address,
-        amount: claimAmount.toString(),
-        amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
-        burnTx: burnTx.hash,
-        messageHash: messageHash,
-        messageBytes: messageBytes,
-        destinationChainId: destinationChainId,
-        destinationChain: destinationChainId === 84532 ? 'Base Sepolia' : 'Ethereum Sepolia',
-        status: 'pending_attestation',
-        attestationStatus: attestationStatus,
-        timestamp: Date.now(),
-        attestationAttempts: attemptCount
-      };
-      
-      data.claims.push(claim);
-      
-      // Update claimed amount immediately (tokens are already burned)
-      const previousClaimed = BigInt(data.claimed[addressLower] || '0');
-      data.claimed[addressLower] = (previousClaimed + claimAmount).toString();
-      saveData();
-      
-      console.error('⚠️ Attestation timeout - claim saved to queue\n');
-      return res.status(202).json({ 
-        success: true,
-        status: 'pending_attestation',
-        claimId: claimId,
-        burnTx: burnTx.hash,
-        messageHash: messageHash,
-        amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
-        message: 'Claim queued. Circle CCTP will complete the transfer automatically within 15-20 minutes. You can close this page.'
+    kit.on('mint', (event) => {
+      console.log(`✨ Mint: ${event.values?.txHash || 'completed'}`);
+      console.log(`   Recipient: ${event.values?.recipient || 'N/A'}`);
+    });
+    
+    // NEW: Listen for errors
+    kit.on('error', (event) => {
+      console.error(`❌ Bridge Error at step ${event.name}:`, event.error?.message || event.error);
+    });
+    
+    console.log('🌉 Executing bridge transfer...');
+    const result = await kit.bridge({
+      from: {
+        adapter: adapter,
+        chain: 'Arc_Testnet',
+      },
+      to: {
+        adapter: adapter,
+        chain: destinationChainName,
+        recipientAddress: address,
+      },
+      amount: (Number(claimAmount) / 1e6).toFixed(6),
+    });
+    
+    console.log('✅ Bridge completed!');
+    console.log(`   State: ${result.state}`);
+    
+    // Log all steps for debugging
+    if (result.steps) {
+      console.log('   Steps:');
+      result.steps.forEach(step => {
+        console.log(`     - ${step.name}: ${step.state} ${step.error ? `(Error: ${step.error.message})` : ''}`);
       });
     }
     
-    // ✅ ATTESTATION RECEIVED - STOP HERE, AUTO-RELAY WILL MINT
-    console.log('✅ Attestation complete - Circle CCTP auto-relay will handle minting\n');
+    const approveStep = result.steps?.find(s => s.name === 'approve');
+    const burnStep = result.steps?.find(s => s.name === 'burn');
+    const attestStep = result.steps?.find(s => s.name === 'attestation');
+    const mintStep = result.steps?.find(s => s.name === 'mint');
     
     const claim = {
       id: claimId,
       recipient: address,
       amount: claimAmount.toString(),
       amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
-      burnTx: burnTx.hash,
-      messageHash: messageHash,
-      messageBytes: messageBytes,
-      attestation: attestation.substring(0, 50) + '...', // Store shortened version
+      approveTx: approveStep?.txHash,
+      burnTx: burnStep?.txHash,
+      mintTx: mintStep?.txHash,
+      attestation: attestStep?.values?.attestation,
+      sourceChain: 'Arc Testnet',
       destinationChainId: destinationChainId,
       destinationChain: destinationChainId === 84532 ? 'Base Sepolia' : 'Ethereum Sepolia',
-      status: 'attested',
+      status: result.state === 'success' ? 'completed' : result.state,
       timestamp: Date.now(),
-      attestationTime: attemptCount * 15
+      bridgeSteps: result.steps?.map(s => ({
+        name: s.name,
+        state: s.state,
+        txHash: s.txHash,
+        error: s.error?.message
+      }))
     };
     
     data.claims.push(claim);
-    
-    // Update claimed amount
     const previousClaimed = BigInt(data.claimed[addressLower] || '0');
     data.claimed[addressLower] = (previousClaimed + claimAmount).toString();
     saveData();
     
-    console.log('🎉 CLAIM COMPLETED - Auto-relay will mint tokens!\n');
+    console.log('🎉 CLAIM COMPLETED!\n');
     
     res.json({ 
-      success: true,
-      status: 'attested',
+      success: result.state === 'success',
+      status: result.state,
       claimId: claimId,
-      burnTx: burnTx.hash,
-      messageHash: messageHash,
+      approveTx: approveStep?.txHash,
+      burnTx: burnStep?.txHash,
+      mintTx: mintStep?.txHash,
       amountUSDC: (Number(claimAmount) / 1e6).toFixed(2),
       remainingUSDC: (Number(BigInt(userReward.pending) - claimAmount) / 1e6).toFixed(2),
-      message: 'Attestation received! Circle CCTP auto-relay will deliver your USDC within 5 minutes.',
-      estimatedDelivery: '2-5 minutes'
+      steps: result.steps,
+      message: result.state === 'success' ? 'Bridge transfer completed successfully!' : 'Bridge encountered an error - check logs'
     });
     
   } catch (error) {
     console.error('❌ CLAIM ERROR:', error.message);
-    res.status(500).json({ error: error.message });
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      error: error.message,
+      details: error.reason || error.code || error.shortMessage || 'Unknown error'
+    });
   }
 });
 
@@ -500,7 +475,9 @@ app.get('/api/treasury', async (req, res) => {
     const rewards = await calculateRewards();
     const totalClaimed = Object.values(data.claimed).reduce((sum, val) => sum + BigInt(val), 0n);
     res.json({ 
-      address: treasury.address, 
+      address: treasury.address,
+      chain: 'Arc Testnet',
+      chainId: 5042002,
       balance: balance.toString(), 
       balanceUSDC: (Number(balance) / 1e6).toFixed(2), 
       totalClaimed: totalClaimed.toString(), 
@@ -514,10 +491,13 @@ app.get('/api/treasury', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
-  console.log(`✅ Server on :${PORT}`);
+  console.log(`✅ Server running on port :${PORT}`);
+  console.log(`🏦 Treasury Hub: Arc Testnet`);
   try {
     const balance = await getTreasuryBalance();
-    console.log(`💰 Treasury: ${(Number(balance) / 1e6).toFixed(2)} USDC\n`);
-  } catch (e) {}
+    console.log(`💰 Arc Treasury Balance: ${(Number(balance) / 1e6).toFixed(2)} USDC\n`);
+  } catch (e) {
+    console.log(`⚠️  Could not fetch Arc treasury balance (may need funding)\n`);
+  }
   console.log('Ready! 🚀\n');
 });

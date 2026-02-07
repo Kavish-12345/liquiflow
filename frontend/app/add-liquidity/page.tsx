@@ -723,7 +723,7 @@ export default function AddLiquidity() {
             <div className="flex items-center gap-8">
               <Link href="/" className="hover:opacity-70 transition-opacity">
                 <h1 className="text-6xl font-light tracking-tight mb-3">
-                  LiquidFlow
+                  LiquiFlow
                 </h1>
                 <p className="text-gray-500 text-lg font-light">
                   Cross-Chain LP Rewards Protocol

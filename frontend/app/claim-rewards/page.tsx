@@ -11,7 +11,9 @@ declare global {
   }
 }
 
-const API_URL = 'http://localhost:3000/api';  
+//const API_URL = 'http://localhost:3000/api';  //to be used for local development
+const API_URL = 'https://liquiflow-3.onrender.com/api'; ///// render api deployed with free plan , so it may take some time to wake up if not accessed for a while. 
+
 
 // Chain mapping
 const CHAIN_NAMES: { [key: number]: string } = {

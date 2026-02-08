@@ -131,10 +131,21 @@
       "chainId": "84532",
       "txHash": "0x99e81ae9584ccce4183b59a3650a0cd71ac6d8407de2b8d61f960e79f5ba5078",
       "blockNumber": 37353542
+    },
+    {
+      "type": "LiquidityAdded",
+      "chain": "ethereum",
+      "provider": "0x499c8bB98c1962aa6329B515f918836024EE746f",
+      "poolId": "0x2b9016b34a2ab49879a45d1adbcf6e589ae7d479b1a5cb22ed7a31fe8339f5e7",
+      "liquidityDelta": "1052403",
+      "timestamp": "1770538392",
+      "chainId": "11155111",
+      "txHash": "0x289eb977311d8aa1394673b0af5faa61fe77c530d4aa6d58d079eaab9650d304",
+      "blockNumber": 10216221
     }
   ],
   "claimed": {
-    "0x499c8bb98c1962aa6329b515f918836024ee746f": "4560000",
+    "0x499c8bb98c1962aa6329b515f918836024ee746f": "4660000",
     "0x6fdf15c2a6a952ba2688b927c77f3e4ccf3ebaa9": "5000000"
   },
   "claims": [
@@ -521,6 +532,41 @@
           "name": "mint",
           "state": "success",
           "txHash": "0x8fe7679bb7706e6493a61ee3f417618cb823be4f01531f8d0b98148cbf2449e1"
+        }
+      ]
+    },
+    {
+      "id": "claim_1770538483529_11xx72bon",
+      "recipient": "0x499c8bb98c1962aa6329b515f918836024ee746f",
+      "amount": "100000",
+      "amountUSDC": "0.10",
+      "approveTx": "0x5e13a15282aafd5b647d88eda70c1dba69a6410e2b12f02a239935c88ce16f2d",
+      "burnTx": "0x2218da03e7fd794a78026e31123a09a77141b0233e47982ab3947328589a6cdd",
+      "mintTx": "0xf93b59d4a429934b8602142eb473f7031d7bc3fb1d3bb76b9e41aa000a1ac555",
+      "sourceChain": "Arc Testnet",
+      "destinationChainId": 84532,
+      "destinationChain": "Base Sepolia",
+      "status": "completed",
+      "timestamp": 1770538503018,
+      "bridgeSteps": [
+        {
+          "name": "approve",
+          "state": "success",
+          "txHash": "0x5e13a15282aafd5b647d88eda70c1dba69a6410e2b12f02a239935c88ce16f2d"
+        },
+        {
+          "name": "burn",
+          "state": "success",
+          "txHash": "0x2218da03e7fd794a78026e31123a09a77141b0233e47982ab3947328589a6cdd"
+        },
+        {
+          "name": "fetchAttestation",
+          "state": "success"
+        },
+        {
+          "name": "mint",
+          "state": "success",
+          "txHash": "0xf93b59d4a429934b8602142eb473f7031d7bc3fb1d3bb76b9e41aa000a1ac555"
         }
       ]
     }

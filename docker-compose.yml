@@ -9,6 +9,8 @@ services:
     restart: always
     env_file:
       - ./agent/.env
+    volumes:
+      - ./agent/data.json:/app/data.json
 
   frontend:
     build: ./frontend

@@ -17,6 +17,8 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
+    'http://20.40.59.141',
+    'http://20.40.59.141:3000',
     'https://liquiflow.vercel.app'
   ],
   credentials: true
@@ -489,7 +491,7 @@ app.get('/api/treasury', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
   console.log(`✅ Server running on port :${PORT}`);
   console.log(`🏦 Treasury Hub: Arc Testnet`);

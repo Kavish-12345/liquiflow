@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+
+  agent:
+    build: ./agent
+    container_name: liquiflow-agent
+    ports:
+      - "5000:5000"
+    restart: always
+    env_file:
+      - ./agent/.env
+
+  frontend:
+    build: ./frontend
+    container_name: liquiflow-frontend
+    ports:
+      - "3000:3000"
+    restart: always
